@@ -196,7 +196,7 @@ async def deep_research(term: str, context: str) -> Optional[dict]:
             "content": content,
             "citations": citations[:5],  # Top 5 citations
             "sources": sources[:5],      # Top 5 sources with scores
-            "badge_type": "research",
+            "badge_type": "Research",
         }
         
     except Exception as exc:

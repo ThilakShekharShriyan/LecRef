@@ -330,7 +330,7 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                                 content=res["content"],
                                 citations=res.get("citations", []),
                                 sources=res.get("sources", []),
-                                badge_type="research",
+                                badge_type="Research",
                                 timestamp_seconds=ts,
                             )
                             logger.info("[%s] 📤 Sending deep_research_result for: %s", lecture_id, res["term"])
@@ -416,7 +416,7 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                     content=result["content"],
                     citations=result.get("citations", []),
                     sources=result.get("sources", []),
-                    badge_type=result.get("badge_type", "research"),
+                    badge_type=result.get("badge_type", "Research"),
                     timestamp_seconds=stt_session.elapsed_seconds(),
                 )
                 logger.info("[%s] 📤 Sending user deep_research_result for: %s", lecture_id, result["term"])
