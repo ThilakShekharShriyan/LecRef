@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+aiosqlite
+google-genai
+python-dotenv
+pydantic-settings
+httpx
+websockets
+pyaudio

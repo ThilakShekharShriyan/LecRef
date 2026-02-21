@@ -1,0 +1,81 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f8f8fc;
+  background-image: radial-gradient(circle, #e8e8f0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Pulse animation for microphone ring */
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+/* Shimmer underline for transcript */
+@keyframes shimmer-underline {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-underline {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6366f1, transparent);
+  animation: shimmer-underline 2s ease-in-out infinite;
+}
+
+/* Breathing animation for topic badge */
+@keyframes breathe {
+  0%, 100% {
+    background-color: #eef2ff;
+  }
+  50% {
+    background-color: #ffffff;
+  }
+}
+
+.breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
