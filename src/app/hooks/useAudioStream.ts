@@ -239,6 +239,23 @@ export function useAudioStream(lectureId: string | undefined) {
         }
     }, [state.isListening, state.isConnected, connect, startAudio, stopAudio]);
 
+    const triggerDeepResearch = useCallback((selectedText: string) => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            console.warn('⚠️ WebSocket not connected, cannot trigger deep research');
+            return;
+        }
+        
+        const context = state.transcript.slice(-500); // Last 500 chars for context
+        const message = {
+            type: 'deep_research',
+            selected_text: selectedText,
+            context: context
+        };
+        
+        wsRef.current.send(JSON.stringify(message));
+        console.log('🔍 Deep research requested for:', selectedText);
+    }, [state.transcript]);
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
@@ -250,6 +267,7 @@ export function useAudioStream(lectureId: string | undefined) {
         ...state,
         connect,
         disconnect,
-        toggleListening
+        toggleListening,
+        triggerDeepResearch
     };
 }

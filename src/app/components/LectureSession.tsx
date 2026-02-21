@@ -27,6 +27,7 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
     topic,
     emphasisLevel,
     toggleListening,
+    triggerDeepResearch,
     disconnect
   } = useAudioStream(lectureId);
 
@@ -75,11 +76,11 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
 
 
   const handleDeepResearch = (selectedText: string) => {
-    // In a real app, this would send a message to the backend via WebSocket
-    // For now, we can just log it or maybe the hook should expose a method for this
-    console.log("Deep research requested for:", selectedText);
-    // TODO: Implement sending deep research request to backend
-    // ws.send(JSON.stringify({ type: 'deep_research', selected_text: selectedText, context: transcript.slice(-500) }))
+    if (!selectedText.trim()) {
+      console.warn('⚠️ No text selected for deep research');
+      return;
+    }
+    triggerDeepResearch(selectedText);
   };
 
   const handleCopySummary = async () => {
