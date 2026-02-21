@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     # LLM (Large Language Model) - using Groq
     groq_api_key: str = ""
+    
+    # Google Docs API
+    google_docs_credentials: str = ""
+    
     database_url: str = "sqlite+aiosqlite:///./lecref.db"
 
     model_config = SettingsConfigDict(

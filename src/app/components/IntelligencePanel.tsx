@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { Loader } from 'lucide-react';
 
 interface ResearchQuery {
   id: string;
@@ -14,7 +15,7 @@ interface IntelligencePanelProps {
   takeaways: string[];
   researchQueries: ResearchQuery[];
   summary: string;
-  onCopySummary: () => void;
+  onExportToDocs: () => void;
 }
 
 export function IntelligencePanel({ 
@@ -23,12 +24,22 @@ export function IntelligencePanel({
   takeaways, 
   researchQueries,
   summary,
-  onCopySummary 
+  onExportToDocs 
 }: IntelligencePanelProps) {
   const [activeTab, setActiveTab] = useState<'takeaways' | 'research'>('takeaways');
   const [expandedQuery, setExpandedQuery] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const emphasisLabel = emphasisLevel > 70 ? 'High' : 'Medium';
+
+  const handleExportClick = async () => {
+    setIsExporting(true);
+    try {
+      await onExportToDocs();
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="w-[280px] flex flex-col h-full space-y-3 overflow-y-auto">
@@ -158,10 +169,18 @@ export function IntelligencePanel({
           {summary}
         </motion.div>
         <button
-          onClick={onCopySummary}
-          className="w-full py-1.5 border border-[#e5e5e5] text-[#111111] text-[10px] font-medium hover:border-[#111111] transition-colors"
+          onClick={handleExportClick}
+          disabled={isExporting}
+          className="w-full py-1.5 border border-[#e5e5e5] text-[#111111] text-[10px] font-medium hover:border-[#111111] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
         >
-          Copy Summary
+          {isExporting ? (
+            <>
+              <Loader className="w-3 h-3 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            'Export to Google Docs'
+          )}
         </button>
       </div>
     </div>

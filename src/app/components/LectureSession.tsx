@@ -82,8 +82,56 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
     // ws.send(JSON.stringify({ type: 'deep_research', selected_text: selectedText, context: transcript.slice(-500) }))
   };
 
-  const handleCopySummary = () => {
-    navigator.clipboard.writeText(summary);
+  const handleCopySummary = async () => {
+    // Prepare summary content including definitions for reference
+    const summaryContent = {
+      title: `Lecture: ${topic || 'Untitled'}`,
+      summary: summary,
+      definitions: definitions.map(def => ({
+        term: def.term,
+        definition: def.definition,
+        type: def.type
+      })),
+      takeaways: takeaways,
+      deepResearch: deepResearchCards.map(card => ({
+        query: card.research_query,
+        synthesis: card.synthesis
+      }))
+    };
+
+    return exportToDocs(summaryContent);
+  };
+
+  const exportToDocs = async (summaryContent: any) => {
+    try {
+      const response = await fetch('/api/docs/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: summaryContent.title,
+          summary: summaryContent.summary,
+          definitions: summaryContent.definitions,
+          takeaways: summaryContent.takeaways,
+          deepResearch: summaryContent.deepResearch
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Open the created doc in a new tab
+      if (data.doc_url) {
+        window.open(data.doc_url, '_blank');
+      }
+    } catch (error) {
+      console.error('[LectureSession] Export to Google Docs error:', error);
+      alert('Failed to export to Google Docs. Please check that Google authentication is set up.');
+    }
   };
 
   const handleExitSession = () => {
@@ -136,14 +184,14 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
         />
 
         {/* Center Column */}
-        <div className="flex-1 flex flex-col overflow-hidden px-6 py-4">
+        <div className="flex-1 flex flex-col overflow-hidden px-4 py-4">
           {/* Transcript Bar */}
           {transcript && (
             <TranscriptBar transcript={transcript} isListening={isListening} onDeepResearch={handleDeepResearch} />
           )}
 
-          {/* Definition Feed */}
-          <div className="flex-1 overflow-y-auto space-y-4 relative">
+          {/* Definition Feed - Grid Layout */}
+          <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 auto-rows-max relative">
             {!isListening && definitions.length === 0 && deepResearchCards.length === 0 && (
               <>
                 <EmptyState />
@@ -175,14 +223,14 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
         </div>
 
         {/* Right Panel */}
-        <div className="pr-6 py-4">
+        <div className="pr-4 py-4">
           <IntelligencePanel
             currentTopic={topic}
             emphasisLevel={emphasisLevel}
             takeaways={takeaways}
             researchQueries={researchQueries}
             summary={summary}
-            onCopySummary={handleCopySummary}
+            onExportToDocs={handleCopySummary}
           />
         </div>
       </div>
