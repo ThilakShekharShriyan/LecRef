@@ -34,6 +34,24 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
   const [timer, setTimer] = useState('00:00:00');
   const [seconds, setSeconds] = useState(0);
   const [sourceMode, setSourceMode] = useState<'microphone' | 'screen-audio'>('microphone');
+  const [reminders, setReminders] = useState<Set<string>>(new Set());
+
+  // Load reminders from localStorage on mount
+  useEffect(() => {
+    if (lectureId) {
+      const savedData = localStorage.getItem(`lecture_${lectureId}`);
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
+          if (data.reminders) {
+            setReminders(new Set(data.reminders));
+          }
+        } catch (e) {
+          console.error('Failed to load reminders:', e);
+        }
+      }
+    }
+  }, [lectureId]);
 
   // Timer effect
   useEffect(() => {
@@ -67,12 +85,13 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
         researchQueries,
         transcript,
         duration: timer,
+        reminders: Array.from(reminders),
       };
       localStorage.setItem(`lecture_${lectureId}`, JSON.stringify(lectureData));
     };
     const interval = window.setInterval(save, 30_000);
     return () => clearInterval(interval);
-  }, [lectureId, definitions, deepResearchCards, takeaways, researchQueries, transcript, timer]);
+  }, [lectureId, definitions, deepResearchCards, takeaways, researchQueries, transcript, timer, reminders]);
 
 
   const handleDeepResearch = (selectedText: string) => {
@@ -81,6 +100,32 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
       return;
     }
     triggerDeepResearch(selectedText);
+  };
+
+  const handleAddDefinitionReminder = (term: string, definition: string) => {
+    const reminderId = `def-${term}`;
+    setReminders(prev => {
+      const updated = new Set(prev);
+      if (updated.has(reminderId)) {
+        updated.delete(reminderId);
+      } else {
+        updated.add(reminderId);
+      }
+      return updated;
+    });
+  };
+
+  const handleAddResearchReminder = (query: string, synthesis: string) => {
+    const reminderId = `research-${query}`;
+    setReminders(prev => {
+      const updated = new Set(prev);
+      if (updated.has(reminderId)) {
+        updated.delete(reminderId);
+      } else {
+        updated.add(reminderId);
+      }
+      return updated;
+    });
   };
 
   const handleCopySummary = async () => {
@@ -145,6 +190,7 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
         researchQueries,
         transcript,
         duration: timer,
+        reminders: Array.from(reminders),
       };
       localStorage.setItem(`lecture_${lectureId}`, JSON.stringify(lectureData));
     }
@@ -207,6 +253,8 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
                 citations={card.citations}
                 sources={card.sources}
                 index={index}
+                onAddReminder={handleAddResearchReminder}
+                isReminder={reminders.has(`research-${card.query || card.term}`)}
               />
             ))}
             {definitions.map((def, index) => (
@@ -218,6 +266,8 @@ export function LectureSession({ lectureId, onExit }: LectureSessionProps) {
                 citations={def.citations}
                 index={index}
                 totalCards={definitions.length}
+                onAddReminder={handleAddDefinitionReminder}
+                isReminder={reminders.has(`def-${def.term}`)}
               />
             ))}
           </div>

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ExternalLink, Play, Pause } from 'lucide-react';
+import { ExternalLink, Play, Pause, Bookmark } from 'lucide-react';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 export type DefinitionType = 'concept' | 'person' | 'event';
@@ -18,6 +18,8 @@ interface DefinitionCardProps {
   citations: Citation[];
   index: number;
   totalCards: number;
+  onAddReminder?: (term: string, definition: string) => void;
+  isReminder?: boolean;
 }
 
 const typeLabels = {
@@ -26,7 +28,7 @@ const typeLabels = {
   event: 'Event',
 };
 
-export function DefinitionCard({ term, type, definition, citations, index, totalCards }: DefinitionCardProps) {
+export function DefinitionCard({ term, type, definition, citations, index, totalCards, onAddReminder, isReminder = false }: DefinitionCardProps) {
   const opacity = index < 3 ? 1 : 0.6;
   const safeType: DefinitionType = typeLabels[type] ? type : 'concept';
   const { isPlaying, isPaused, isLoading, play, pause, resume } = useAudioPlayer(`def-${term}-${index}`);
@@ -40,6 +42,12 @@ export function DefinitionCard({ term, type, definition, citations, index, total
       }
     } else {
       await play(`${term}. ${definition}`);
+    }
+  };
+
+  const handleAddReminder = () => {
+    if (onAddReminder) {
+      onAddReminder(term, definition);
     }
   };
 
@@ -71,6 +79,17 @@ export function DefinitionCard({ term, type, definition, citations, index, total
           ) : (
             <Play className="w-3.5 h-3.5 text-[#111111]" />
           )}
+        </button>
+        <button
+          onClick={handleAddReminder}
+          className={`p-1.5 border transition-colors ${
+            isReminder 
+              ? 'border-[#111111] bg-[#111111]' 
+              : 'border-[#e5e5e5] hover:border-[#111111]'
+          }`}
+          title={isReminder ? "Added to reminders" : "Add to end-of-day reminders"}
+        >
+          <Bookmark className={`w-3.5 h-3.5 ${isReminder ? 'text-[#ffffff] fill-[#ffffff]' : 'text-[#111111]'}`} />
         </button>
         <span className="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-[#f5f5f5] text-[#737373]">
           {typeLabels[safeType]}

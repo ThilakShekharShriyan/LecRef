@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, ChevronDown, ChevronUp, Globe, Search, Play, Pause } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, Globe, Search, Play, Pause, Bookmark } from 'lucide-react';
 import { useState } from 'react';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
@@ -66,6 +66,8 @@ interface DeepResearchCardProps {
   sources?: Source[];
   index: number;
   isLoading?: boolean;
+  onAddReminder?: (query: string, synthesis: string) => void;
+  isReminder?: boolean;
 }
 
 export function DeepResearchCard({
@@ -75,6 +77,8 @@ export function DeepResearchCard({
   sources,
   index,
   isLoading = false,
+  onAddReminder,
+  isReminder = false,
 }: DeepResearchCardProps) {
   const [expanded, setExpanded] = useState(index === 0);
   const opacity = index < 2 ? 1 : 0.7;
@@ -92,6 +96,12 @@ export function DeepResearchCard({
       }
     } else {
       await play(`${query}. ${synthesis}`);
+    }
+  };
+
+  const handleAddReminder = () => {
+    if (onAddReminder) {
+      onAddReminder(query, synthesis);
     }
   };
 
@@ -138,6 +148,17 @@ export function DeepResearchCard({
           ) : (
             <Play className="w-3.5 h-3.5 text-[#111111]" />
           )}
+        </button>
+        <button
+          onClick={handleAddReminder}
+          className={`p-1.5 border transition-colors flex-shrink-0 ${
+            isReminder 
+              ? 'border-[#111111] bg-[#111111]' 
+              : 'border-[#e5e5e5] hover:border-[#111111]'
+          }`}
+          title={isReminder ? "Added to reminders" : "Add to end-of-day reminders"}
+        >
+          <Bookmark className={`w-3.5 h-3.5 ${isReminder ? 'text-[#ffffff] fill-[#ffffff]' : 'text-[#111111]'}`} />
         </button>
         <button className="text-[#a3a3a3] mt-1 flex-shrink-0">
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
