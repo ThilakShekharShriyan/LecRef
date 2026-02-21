@@ -26,7 +26,12 @@ class Settings(BaseSettings):
     # Google Docs API
     google_docs_credentials: str = ""
     
+    # Database - SQLite (always enabled)
     database_url: str = "sqlite+aiosqlite:///./lecref.db"
+    
+    # Convex (optional real-time database)
+    enable_convex: bool = False
+    convex_url: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
