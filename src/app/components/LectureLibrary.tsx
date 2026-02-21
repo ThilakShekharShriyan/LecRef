@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Plus, Play, Clock, Calendar, Download, Trash2, Search } from 'lucide-react';
+import { Plus, Play, Clock, Calendar, Download, Trash2, Search } from 'lucide-react';
 
 export interface Lecture {
   id: string;
@@ -38,36 +38,31 @@ export function LectureLibrary({
   );
 
   return (
-    <div className="h-screen flex flex-col bg-[#f8f8fc]">
+    <div className="h-screen flex flex-col bg-[#fafafa]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-8 py-6">
+      <div className="border-b border-[#e5e5e5]">
+        <div className="max-w-6xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-[#6366f1]" />
-              <h1 className="text-3xl font-bold text-[#111118]">lecRef</h1>
-            </div>
+            <h1 className="text-2xl font-light text-[#111111] tracking-tight">lecRef</h1>
             
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={onNewLecture}
-              className="flex items-center gap-2 px-6 py-3 bg-[#6366f1] text-white rounded-lg hover:bg-[#5558e3] transition-colors shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#111111] text-[#fafafa] text-sm font-medium hover:bg-[#262626] transition-colors"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               New Lecture
-            </motion.button>
+            </button>
           </div>
           
           {/* Search Bar */}
           <div className="mt-6 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9999aa]" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#a3a3a3]" />
             <input
               type="text"
-              placeholder="Search lectures by title or topic..."
+              placeholder="Search lectures..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-[#f8f8fc] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 bg-[#f5f5f5] border border-[#e5e5e5] text-sm focus:outline-none focus:border-[#111111] transition-colors"
             />
           </div>
         </div>
@@ -75,37 +70,34 @@ export function LectureLibrary({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="max-w-6xl mx-auto px-8 py-8">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-3xl font-bold text-[#111118] mb-1">{lectures.length}</div>
-              <div className="text-sm text-[#9999aa]">Total Lectures</div>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="border border-[#e5e5e5] p-5">
+              <div className="text-2xl font-light text-[#111111] mb-1">{lectures.length}</div>
+              <div className="text-xs text-[#a3a3a3] uppercase tracking-wide">Total</div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-3xl font-bold text-[#6366f1] mb-1">
+            <div className="border border-[#e5e5e5] p-5">
+              <div className="text-2xl font-light text-[#111111] mb-1">
                 {lectures.filter(l => l.status === 'in-progress').length}
               </div>
-              <div className="text-sm text-[#9999aa]">In Progress</div>
+              <div className="text-xs text-[#a3a3a3] uppercase tracking-wide">In Progress</div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="text-3xl font-bold text-[#16a34a] mb-1">
+            <div className="border border-[#e5e5e5] p-5">
+              <div className="text-2xl font-light text-[#111111] mb-1">
                 {lectures.filter(l => l.status === 'completed').length}
               </div>
-              <div className="text-sm text-[#9999aa]">Completed</div>
+              <div className="text-xs text-[#a3a3a3] uppercase tracking-wide">Completed</div>
             </div>
           </div>
 
           {/* Lecture Grid */}
           {filteredLectures.length === 0 ? (
             <div className="text-center py-20">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#eef2ff] to-[#e0e7ff] flex items-center justify-center">
-                <Sparkles className="w-10 h-10 text-[#6366f1]" />
-              </div>
-              <h3 className="text-2xl font-semibold text-[#111118] mb-2">
+              <h3 className="text-lg font-light text-[#111111] mb-2">
                 {searchQuery ? 'No lectures found' : 'No lectures yet'}
               </h3>
-              <p className="text-[#9999aa] mb-6">
+              <p className="text-sm text-[#a3a3a3] mb-6">
                 {searchQuery 
                   ? 'Try a different search term' 
                   : 'Start your first lecture to begin capturing insights'}
@@ -113,38 +105,37 @@ export function LectureLibrary({
               {!searchQuery && (
                 <button
                   onClick={onNewLecture}
-                  className="px-6 py-3 bg-[#6366f1] text-white rounded-lg hover:bg-[#5558e3] transition-colors inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-[#111111] text-[#fafafa] text-sm font-medium hover:bg-[#262626] transition-colors inline-flex items-center gap-2"
                 >
-                  <Plus className="w-5 h-5" />
-                  Create Your First Lecture
+                  <Plus className="w-4 h-4" />
+                  Create First Lecture
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredLectures.map((lecture) => (
                 <motion.div
                   key={lecture.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -4, boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}
                   onHoverStart={() => setHoveredCard(lecture.id)}
                   onHoverEnd={() => setHoveredCard(null)}
-                  className="bg-white rounded-xl shadow-md p-6 cursor-pointer transition-all border border-transparent hover:border-[#6366f1]"
+                  className="bg-[#ffffff] border border-[#e5e5e5] p-5 cursor-pointer transition-all hover:border-[#111111]"
                   onClick={() => onResumeLecture(lecture.id)}
                 >
                   {/* Status Badge */}
                   <div className="flex items-center justify-between mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    <span className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
                       lecture.status === 'completed'
-                        ? 'bg-[#dcfce7] text-[#16a34a]'
-                        : 'bg-[#fef9c3] text-[#d97706]'
+                        ? 'bg-[#f5f5f5] text-[#525252]'
+                        : 'bg-[#111111] text-[#fafafa]'
                     }`}>
-                      {lecture.status === 'completed' ? 'Completed' : 'In Progress'}
+                      {lecture.status === 'completed' ? 'Done' : 'Active'}
                     </span>
                     
                     {/* Action Buttons */}
-                    <div className={`flex gap-2 transition-opacity ${
+                    <div className={`flex gap-1 transition-opacity ${
                       hoveredCard === lecture.id ? 'opacity-100' : 'opacity-0'
                     }`}>
                       <button
@@ -152,48 +143,48 @@ export function LectureLibrary({
                           e.stopPropagation();
                           onExportLecture(lecture.id);
                         }}
-                        className="p-2 hover:bg-[#eef2ff] rounded-lg transition-colors"
+                        className="p-1.5 hover:bg-[#f5f5f5] transition-colors"
                         title="Export"
                       >
-                        <Download className="w-4 h-4 text-[#6366f1]" />
+                        <Download className="w-3.5 h-3.5 text-[#737373]" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteLecture(lecture.id);
                         }}
-                        className="p-2 hover:bg-[#fee] rounded-lg transition-colors"
+                        className="p-1.5 hover:bg-[#f5f5f5] transition-colors"
                         title="Delete"
                       >
-                        <Trash2 className="w-4 h-4 text-[#dc2626]" />
+                        <Trash2 className="w-3.5 h-3.5 text-[#737373]" />
                       </button>
                     </div>
                   </div>
 
                   {/* Title & Topic */}
-                  <h3 className="text-lg font-semibold text-[#111118] mb-2 line-clamp-2">
+                  <h3 className="text-sm font-medium text-[#111111] mb-1 line-clamp-2">
                     {lecture.title}
                   </h3>
-                  <p className="text-sm text-[#6366f1] mb-4">{lecture.topic}</p>
+                  <p className="text-xs text-[#a3a3a3] mb-4">{lecture.topic}</p>
 
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                    <div className="bg-[#f8f8fc] rounded-lg p-2">
-                      <div className="text-lg font-semibold text-[#111118]">{lecture.definitionCount}</div>
-                      <div className="text-xs text-[#9999aa]">Definitions</div>
+                    <div className="bg-[#f5f5f5] p-2">
+                      <div className="text-sm font-medium text-[#111111]">{lecture.definitionCount}</div>
+                      <div className="text-[10px] text-[#a3a3a3]">Defs</div>
                     </div>
-                    <div className="bg-[#f8f8fc] rounded-lg p-2">
-                      <div className="text-lg font-semibold text-[#111118]">{lecture.researchCount}</div>
-                      <div className="text-xs text-[#9999aa]">Research</div>
+                    <div className="bg-[#f5f5f5] p-2">
+                      <div className="text-sm font-medium text-[#111111]">{lecture.researchCount}</div>
+                      <div className="text-[10px] text-[#a3a3a3]">Research</div>
                     </div>
-                    <div className="bg-[#f8f8fc] rounded-lg p-2">
-                      <div className="text-lg font-semibold text-[#111118]">{lecture.takeawayCount}</div>
-                      <div className="text-xs text-[#9999aa]">Takeaways</div>
+                    <div className="bg-[#f5f5f5] p-2">
+                      <div className="text-sm font-medium text-[#111111]">{lecture.takeawayCount}</div>
+                      <div className="text-[10px] text-[#a3a3a3]">Notes</div>
                     </div>
                   </div>
 
                   {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-[#9999aa] border-t border-gray-100 pt-3">
+                  <div className="flex items-center justify-between text-[10px] text-[#a3a3a3] border-t border-[#f0f0f0] pt-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {lecture.date}
@@ -208,11 +199,11 @@ export function LectureLibrary({
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: hoveredCard === lecture.id ? 1 : 0 }}
-                    className="mt-4 pt-3 border-t border-gray-100"
+                    className="mt-3 pt-3 border-t border-[#f0f0f0]"
                   >
-                    <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#6366f1] text-white rounded-lg hover:bg-[#5558e3] transition-colors">
-                      <Play className="w-4 h-4" />
-                      {lecture.status === 'completed' ? 'View Lecture' : 'Resume Lecture'}
+                    <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#111111] text-[#fafafa] text-xs font-medium hover:bg-[#262626] transition-colors">
+                      <Play className="w-3 h-3" />
+                      {lecture.status === 'completed' ? 'View' : 'Resume'}
                     </button>
                   </motion.div>
                 </motion.div>

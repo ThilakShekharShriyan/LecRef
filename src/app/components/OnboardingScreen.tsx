@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Mic, Brain, FileText, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Mic, Brain, FileText, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -11,19 +11,16 @@ const slides = [
     icon: Mic,
     title: 'Capture Every Word',
     description: 'lecRef listens to your lectures in real-time, transcribing everything automatically so you never miss important information.',
-    color: '#6366f1',
   },
   {
     icon: Brain,
     title: 'Intelligent Definitions',
     description: 'AI automatically identifies and defines key concepts, people, and events as they\'re mentioned during the lecture.',
-    color: '#8b5cf6',
   },
   {
     icon: FileText,
     title: 'Deep Research',
     description: 'Select any text to trigger comprehensive research with citations from trusted academic sources.',
-    color: '#6366f1',
   },
 ];
 
@@ -52,17 +49,14 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const Icon = slide.icon;
 
   return (
-    <div className="h-screen flex items-center justify-center bg-white">
-      <div className="max-w-2xl w-full px-8">
+    <div className="h-screen flex items-center justify-center bg-[#fafafa]">
+      <div className="max-w-xl w-full px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-16">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-[#6366f1]" />
-            <span className="font-semibold text-[#111118] text-xl">lecRef</span>
-          </div>
+          <span className="font-light text-[#111111] text-xl tracking-tight">lecRef</span>
           <button
             onClick={handleSkip}
-            className="text-[#9999aa] hover:text-[#6366f1] transition-colors text-sm"
+            className="text-[#a3a3a3] hover:text-[#111111] transition-colors text-sm"
           >
             Skip
           </button>
@@ -72,39 +66,36 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="text-center mb-16"
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.25 }}
+            className="mb-16"
           >
-            <div 
-              className="w-32 h-32 mx-auto mb-8 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${slide.color}20` }}
-            >
-              <Icon className="w-16 h-16" style={{ color: slide.color }} />
+            <div className="w-16 h-16 mb-8 border border-[#e5e5e5] flex items-center justify-center">
+              <Icon className="w-7 h-7 text-[#111111]" />
             </div>
             
-            <h2 className="text-4xl font-bold text-[#111118] mb-4">
+            <h2 className="text-3xl font-light text-[#111111] mb-4 tracking-tight">
               {slide.title}
             </h2>
             
-            <p className="text-lg text-[#444455] leading-relaxed max-w-xl mx-auto">
+            <p className="text-sm text-[#737373] leading-relaxed max-w-md">
               {slide.description}
             </p>
           </motion.div>
         </AnimatePresence>
 
         {/* Progress Dots */}
-        <div className="flex justify-center gap-2 mb-12">
+        <div className="flex gap-2 mb-12">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
+              className={`h-px transition-all ${
                 index === currentSlide 
-                  ? 'w-8 bg-[#6366f1]' 
-                  : 'bg-[#e8e8f0] hover:bg-[#d0d0e0]'
+                  ? 'w-8 bg-[#111111]' 
+                  : 'w-4 bg-[#d4d4d4] hover:bg-[#a3a3a3]'
               }`}
             />
           ))}
@@ -115,22 +106,22 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           <button
             onClick={handlePrevious}
             disabled={currentSlide === 0}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all ${
+            className={`flex items-center gap-2 text-sm transition-colors ${
               currentSlide === 0
-                ? 'text-[#c0c0cc] cursor-not-allowed'
-                : 'text-[#6366f1] hover:bg-[#eef2ff]'
+                ? 'text-[#d4d4d4] cursor-not-allowed'
+                : 'text-[#111111] hover:text-[#525252]'
             }`}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
             Previous
           </button>
           
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-8 py-3 bg-[#6366f1] text-white rounded-lg hover:bg-[#5558e3] transition-colors shadow-lg"
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#111111] text-[#fafafa] text-sm font-medium hover:bg-[#262626] transition-colors"
           >
             {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>

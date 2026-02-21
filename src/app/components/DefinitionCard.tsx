@@ -18,12 +18,6 @@ interface DefinitionCardProps {
   totalCards: number;
 }
 
-const typeColors = {
-  concept: { bg: '#dbeafe', text: '#3b82f6' },
-  person: { bg: '#dcfce7', text: '#16a34a' },
-  event: { bg: '#fef9c3', text: '#d97706' },
-};
-
 const typeLabels = {
   concept: 'Concept',
   person: 'Person',
@@ -32,12 +26,10 @@ const typeLabels = {
 
 export function DefinitionCard({ term, type, definition, citations, index, totalCards }: DefinitionCardProps) {
   const opacity = index < 3 ? 1 : 0.6;
-  const safeType: DefinitionType = typeColors[type] ? type : 'concept';
-  const colors = typeColors[safeType];
+  const safeType: DefinitionType = typeLabels[type] ? type : 'concept';
   const { isPlaying, isPaused, isLoading, play, pause, resume } = useAudioPlayer(`def-${term}-${index}`);
 
   const handlePlayClick = async () => {
-    console.log('[DefinitionCard] handlePlayClick called', { isPlaying, isPaused, isLoading });
     if (isPlaying) {
       if (isPaused) {
         resume();
@@ -51,60 +43,56 @@ export function DefinitionCard({ term, type, definition, citations, index, total
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={{ opacity, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity, y: 0 }}
       transition={{
         type: 'spring',
         stiffness: 300,
         damping: 25,
         delay: index * 0.05
       }}
-      whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}
-      className="bg-white rounded-xl shadow-md p-5 border-l-[3px] border-[#6366f1] transition-shadow hover:shadow-lg"
+      className="bg-[#ffffff] border border-[#e5e5e5] border-l-2 border-l-[#111111] p-4 transition-colors hover:border-l-[#525252]"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <h3 className="text-[#111118] font-semibold flex-1">{term}</h3>
+      <div className="flex items-center gap-3 mb-2">
+        <h3 className="text-[#111111] text-sm font-medium flex-1">{term}</h3>
         <button
           onClick={handlePlayClick}
           disabled={isLoading}
-          className="p-2 rounded-lg bg-[#eef2ff] hover:bg-[#ddd6fe] disabled:bg-[#c8c7ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 border border-[#e5e5e5] hover:border-[#111111] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title={isLoading ? "Loading..." : isPlaying && !isPaused ? "Pause" : isPlaying && isPaused ? "Resume" : "Play"}
         >
           {isLoading ? (
-            <div className="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border border-[#111111] border-t-transparent rounded-full animate-spin" />
           ) : isPlaying && !isPaused ? (
-            <Pause className="w-4 h-4 text-[#6366f1]" />
+            <Pause className="w-3.5 h-3.5 text-[#111111]" />
           ) : (
-            <Play className="w-4 h-4 text-[#6366f1]" />
+            <Play className="w-3.5 h-3.5 text-[#111111]" />
           )}
         </button>
-        <span
-          className="px-2.5 py-1 rounded-full text-xs font-medium"
-          style={{ backgroundColor: colors.bg, color: colors.text }}
-        >
+        <span className="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-[#f5f5f5] text-[#737373]">
           {typeLabels[safeType]}
         </span>
       </div>
 
       {/* Definition */}
-      <p className="text-[#444455] text-sm leading-relaxed mb-4">
+      <p className="text-[#525252] text-xs leading-relaxed mb-3">
         {definition}
       </p>
 
       {/* Citations */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {citations.map((citation, i) => (
           <a
             key={i}
             href="#"
-            className="px-3 py-1.5 bg-[#ede9fe] text-[#6366f1] text-xs rounded-full flex items-center gap-1.5 hover:bg-[#ddd6fe] transition-colors"
+            className="px-2 py-1 bg-[#f5f5f5] text-[#737373] text-[10px] flex items-center gap-1 hover:bg-[#e5e5e5] transition-colors"
           >
             {citation.favicon && (
-              <img src={citation.favicon} alt="" className="w-3 h-3" />
+              <img src={citation.favicon} alt="" className="w-2.5 h-2.5" />
             )}
             <span>{citation.domain}</span>
-            <ExternalLink className="w-3 h-3" />
+            <ExternalLink className="w-2.5 h-2.5" />
           </a>
         ))}
       </div>
