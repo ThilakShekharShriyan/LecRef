@@ -110,7 +110,7 @@ async def auto_define_batch(
 
 
 async def deep_research(term: str, context: str) -> Optional[dict]:
-    """Deep research with web search using groq/compound model.
+    """Deep research with web search using groq/compound model (fallback to llama).
     
     Returns dict with:
     - term: research topic
@@ -125,28 +125,45 @@ async def deep_research(term: str, context: str) -> Optional[dict]:
         return None
 
     prompt = _DEEP_RESEARCH_PROMPT.format(term=term, context=context[:400])
-    try:
-        logger.debug(f"[Groq] Requesting groq/compound (web search) for: '{term}'")
-        
-        # Use groq/compound with built-in web search
-        response = await _get_client().chat.completions.create(
-            model=_SEARCH_MODEL,  # groq/compound with Tavily web search
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1024,
-            search_settings={
-                "exclude_domains": ["twitter.com", "x.com", "instagram.com"]  # Skip social media
+    
+    # Try groq/compound first, fallback to regular model
+    model_to_use = _SEARCH_MODEL
+    search_params = {
+        "model": model_to_use,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+        "max_tokens": 1024,
+    }
+    
+    # Only add search_settings if using groq/compound
+    if model_to_use == _SEARCH_MODEL:
+        try:
+            search_params["search_settings"] = {
+                "exclude_domains": ["twitter.com", "x.com", "instagram.com"]
             }
-        )
+        except Exception:
+            logger.debug("[Groq] search_settings not supported, will try without it")
+            pass
+    
+    try:
+        logger.debug(f"[Groq] Requesting {model_to_use} for: '{term}'")
+        
+        try:
+            # Try with search settings first
+            response = await _get_client().chat.completions.create(**search_params)
+        except (TypeError, AttributeError) as e:
+            # If search_settings isn't supported, try without it
+            logger.warning(f"[Groq] search_settings not supported, falling back to standard model: {e}")
+            search_params.pop("search_settings", None)
+            search_params["model"] = _MODEL  # Use regular model instead
+            response = await _get_client().chat.completions.create(**search_params)
         
         content = response.choices[0].message.content.strip()
         if not content:
-            logger.warning(f"[Groq] Empty response from groq/compound for: '{term}'")
+            logger.warning(f"[Groq] Empty response from {search_params['model']} for: '{term}'")
             return None
 
-        # Extract sources from web search
+        # Extract sources from web search (if available)
         sources = []
         citations = []
         

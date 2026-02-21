@@ -3,11 +3,22 @@ import { ExternalLink, ChevronDown, ChevronUp, Globe, Search, Play, Pause } from
 import { useState } from 'react';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
+// Helper to extract domain from URL
+const getDomain = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname || url;
+  } catch {
+    return url;
+  }
+};
+
 interface Source {
   title: string;
   url: string;
-  domain: string;
-  snippet: string;
+  domain?: string;
+  snippet?: string;
+  relevance?: number;
 }
 
 interface Citation {
@@ -113,7 +124,7 @@ export function DeepResearchCard({
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4">
+            <div className="px-4 pb-4 space-y-3">
               {isLoading ? (
                 <div className="space-y-2 pt-2">
                   {[100, 90, 95].map((w, i) => (
@@ -124,64 +135,91 @@ export function DeepResearchCard({
                     />
                   ))}
                 </div>
-              ) : hasSources ? (
-                <div className="space-y-2 pt-1">
-                  {sources!.map((src, i) => (
-                    <div
-                      key={i}
-                      className="border border-[#f0f0f0] bg-[#fafafa] p-3"
-                    >
-                      <a
-                        href={src.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-start gap-2 group mb-1.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Globe className="w-3 h-3 text-[#a3a3a3] mt-0.5 flex-shrink-0" />
-                        <span className="text-[10px] font-medium text-[#111111] group-hover:underline leading-tight">
-                          {src.title}
-                        </span>
-                        <ExternalLink className="w-2.5 h-2.5 text-[#d4d4d4] mt-0.5 flex-shrink-0 ml-auto" />
-                      </a>
-                      <p className="text-[10px] text-[#737373] leading-relaxed ml-5">
-                        {src.snippet}
+              ) : (
+                <>
+                  {/* Synthesis/Content Text */}
+                  <div className="space-y-2 pt-1">
+                    {synthesis.split('\n\n').map((para, i) => (
+                      <p key={i} className="text-xs text-[#525252] leading-relaxed">
+                        {para}
                       </p>
-                      <div className="mt-1.5 ml-5">
-                        <span className="text-[9px] text-[#a3a3a3] bg-[#ffffff] border border-[#e5e5e5] px-1.5 py-0.5">
-                          {src.domain}
-                        </span>
+                    ))}
+                  </div>
+
+                  {/* Sources Section */}
+                  {hasSources && (
+                    <div className="border-t border-[#e5e5e5] pt-3">
+                      <div className="text-[9px] font-semibold text-[#a3a3a3] uppercase tracking-widest mb-2">
+                        Sources ({sources!.length})
+                      </div>
+                      <div className="space-y-2">
+                        {sources!.map((src, i) => (
+                          <div
+                            key={i}
+                            className="border border-[#f0f0f0] bg-[#fafafa] p-2.5"
+                          >
+                            <a
+                              href={src.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-start gap-2 group mb-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Globe className="w-3 h-3 text-[#a3a3a3] mt-0.5 flex-shrink-0" />
+                              <span className="text-[10px] font-medium text-[#111111] group-hover:underline leading-tight flex-1">
+                                {src.title}
+                              </span>
+                              <ExternalLink className="w-2.5 h-2.5 text-[#d4d4d4] mt-0.5 flex-shrink-0" />
+                            </a>
+                            {src.snippet && (
+                              <p className="text-[9px] text-[#737373] leading-tight ml-5 mb-1">
+                                {src.snippet.substring(0, 150)}...
+                              </p>
+                            )}
+                            <div className="mt-1.5 ml-5 flex flex-wrap gap-1">
+                              <span className="text-[8px] text-[#a3a3a3] bg-[#ffffff] border border-[#e5e5e5] px-1.5 py-0.5">
+                                {src.domain || getDomain(src.url)}
+                              </span>
+                              {src.relevance && (
+                                <span className="text-[8px] text-[#a3a3a3] bg-[#ffffff] border border-[#e5e5e5] px-1.5 py-0.5">
+                                  {Math.round(src.relevance * 100)}% relevant
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="pt-2 space-y-2">
-                  {synthesis.split('\n\n').map((para, i) => (
-                    <p key={i} className="text-xs text-[#525252] leading-relaxed">
-                      {para}
-                    </p>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              {citations && citations.length > 0 && !hasSources && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {citations.map((c, i) => (
-                    <a
-                      key={i}
-                      href={c.url || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-2 py-0.5 bg-[#f5f5f5] text-[#737373] text-[10px] hover:bg-[#e5e5e5] transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {c.favicon && <img src={c.favicon} alt="" className="w-2.5 h-2.5" />}
-                      {c.domain}
-                      <ExternalLink className="w-2 h-2" />
-                    </a>
-                  ))}
-                </div>
+                  {/* Fallback Citations if no sources */}
+                  {!hasSources && citations && citations.length > 0 && (
+                    <div className="border-t border-[#e5e5e5] pt-3">
+                      <div className="text-[9px] font-semibold text-[#a3a3a3] uppercase tracking-widest mb-2">
+                        References ({citations.length})
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {citations.map((c, i) => (
+                          <a
+                            key={i}
+                            href={c.url || '#'}
+                            target={c.url ? '_blank' : undefined}
+                            rel={c.url ? 'noopener noreferrer' : undefined}
+                            onClick={(e) => {
+                              if (!c.url) e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="flex items-center gap-1 px-2 py-1 bg-[#f5f5f5] text-[#737373] text-[9px] hover:bg-[#e5e5e5] transition-colors"
+                          >
+                            {c.favicon && <img src={c.favicon} alt="" className="w-2.5 h-2.5" />}
+                            <span>{c.title || c.domain}</span>
+                            {c.url && <ExternalLink className="w-2 h-2" />}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </motion.div>

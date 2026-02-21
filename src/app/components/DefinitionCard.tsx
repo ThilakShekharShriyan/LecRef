@@ -5,6 +5,8 @@ import { useAudioPlayer } from '../hooks/useAudioPlayer';
 export type DefinitionType = 'concept' | 'person' | 'event';
 
 interface Citation {
+  title?: string;
+  url?: string;
   domain: string;
   favicon?: string;
 }
@@ -80,22 +82,29 @@ export function DefinitionCard({ term, type, definition, citations, index, total
         {definition}
       </p>
 
-      {/* Citations */}
-      <div className="flex flex-wrap gap-1.5">
-        {citations.map((citation, i) => (
-          <a
-            key={i}
-            href="#"
-            className="px-2 py-1 bg-[#f5f5f5] text-[#737373] text-[10px] flex items-center gap-1 hover:bg-[#e5e5e5] transition-colors"
-          >
-            {citation.favicon && (
-              <img src={citation.favicon} alt="" className="w-2.5 h-2.5" />
-            )}
-            <span>{citation.domain}</span>
-            <ExternalLink className="w-2.5 h-2.5" />
-          </a>
-        ))}
-      </div>
+      {/* Citations - Now with proper links */}
+      {citations && citations.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {citations.map((citation, i) => (
+            <a
+              key={i}
+              href={citation.url || '#'}
+              target={citation.url ? '_blank' : undefined}
+              rel={citation.url ? 'noopener noreferrer' : undefined}
+              onClick={(e) => {
+                if (!citation.url) e.preventDefault();
+              }}
+              className="px-2 py-1 bg-[#f5f5f5] text-[#737373] text-[10px] flex items-center gap-1 hover:bg-[#e5e5e5] transition-colors cursor-pointer"
+            >
+              {citation.favicon && (
+                <img src={citation.favicon} alt="" className="w-2.5 h-2.5" />
+              )}
+              <span>{citation.title || citation.domain}</span>
+              {citation.url && <ExternalLink className="w-2.5 h-2.5" />}
+            </a>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
