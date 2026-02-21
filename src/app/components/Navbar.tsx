@@ -1,23 +1,20 @@
-import { Sparkles } from 'lucide-react';
-
 interface NavbarProps {
   isListening: boolean;
 }
 
 export function Navbar({ isListening }: NavbarProps) {
   return (
-    <nav className="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
+    <nav className="h-11 border-b border-[#e5e5e5] flex items-center justify-between px-6 sticky top-0 z-50 bg-[#fafafa]">
       <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-[#6366f1]" />
-        <span className="font-semibold text-[#111118] text-lg">lecRef</span>
+        <span className="font-light text-[#111111] text-base tracking-tight">lecRef</span>
       </div>
       
-      <div className="flex items-center gap-3">
-        <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-[#22c55e] animate-pulse' : 'bg-gray-400'}`} />
-        <span className="text-sm text-[#444455] font-medium">{isListening ? 'Live' : 'Ready'}</span>
+      <div className="flex items-center gap-2">
+        <div className={`w-1.5 h-1.5 rounded-full ${isListening ? 'bg-[#111111] animate-pulse' : 'bg-[#d4d4d4]'}`} />
+        <span className="text-xs text-[#737373]">{isListening ? 'Live' : 'Ready'}</span>
       </div>
       
-      <button className="px-4 py-2 border border-[#6366f1] text-[#6366f1] rounded-lg hover:bg-[#eef2ff] transition-colors text-sm font-medium">
+      <button className="px-3 py-1.5 border border-[#e5e5e5] text-[#111111] text-xs font-medium hover:border-[#111111] transition-colors">
         Copy All Notes
       </button>
     </nav>

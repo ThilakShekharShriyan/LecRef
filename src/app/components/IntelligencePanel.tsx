@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Flame } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ResearchQuery {
@@ -29,75 +28,64 @@ export function IntelligencePanel({
   const [activeTab, setActiveTab] = useState<'takeaways' | 'research'>('takeaways');
   const [expandedQuery, setExpandedQuery] = useState<string | null>(null);
 
-  const emphasisIcon = emphasisLevel > 70 ? '🔥' : '∿';
   const emphasisLabel = emphasisLevel > 70 ? 'High' : 'Medium';
 
   return (
-    <div className="w-[300px] bg-transparent flex flex-col h-full space-y-4 overflow-y-auto">
+    <div className="w-[280px] flex flex-col h-full space-y-3 overflow-y-auto">
       {/* Current Topic */}
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <h3 className="text-xs uppercase tracking-wide text-[#9999aa] mb-3">Current Topic</h3>
-        <div className="breathe rounded-lg px-4 py-3 mb-4 border border-[#e8e8f0]">
-          <div className="text-[#111118] font-semibold text-sm">{currentTopic}</div>
+      <div className="border border-[#e5e5e5] bg-[#ffffff] p-4">
+        <h3 className="text-[9px] uppercase tracking-widest text-[#a3a3a3] mb-3">Current Topic</h3>
+        <div className="breathe px-3 py-2 border border-[#f0f0f0] mb-3">
+          <div className="text-[#111111] text-xs font-medium">{currentTopic}</div>
         </div>
         
         {/* Emphasis Indicator */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[#9999aa]">Emphasis Level</span>
-            <span className="text-[#444455]">{emphasisLabel}</span>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-[#a3a3a3]">Emphasis</span>
+            <span className="text-[#525252]">{emphasisLabel}</span>
           </div>
-          <div className="relative h-2 bg-[#f1f1f5] rounded-full overflow-hidden">
+          <div className="relative h-1 bg-[#f0f0f0] overflow-hidden">
             <motion.div
-              className="absolute top-0 left-0 h-full bg-[#6366f1] rounded-full"
+              className="absolute top-0 left-0 h-full bg-[#111111]"
               initial={{ width: 0 }}
               animate={{ width: `${emphasisLevel}%` }}
               transition={{ type: 'spring', stiffness: 100, damping: 15 }}
             />
           </div>
-          <div className="text-right">
-            <motion.span 
-              key={emphasisIcon}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-lg"
-            >
-              {emphasisIcon}
-            </motion.span>
-          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-md p-5 flex-1">
+      <div className="border border-[#e5e5e5] bg-[#ffffff] p-4 flex-1">
         {/* Tab Header */}
-        <div className="flex border-b border-[#f1f1f5] mb-4 relative">
+        <div className="flex border-b border-[#f0f0f0] mb-3 relative">
           <button
             onClick={() => setActiveTab('takeaways')}
-            className={`flex-1 pb-3 text-sm transition-colors relative ${
-              activeTab === 'takeaways' ? 'text-[#6366f1]' : 'text-[#9999aa]'
+            className={`flex-1 pb-2 text-[10px] font-medium transition-colors relative ${
+              activeTab === 'takeaways' ? 'text-[#111111]' : 'text-[#a3a3a3]'
             }`}
           >
-            Key Takeaways
+            Takeaways
             {activeTab === 'takeaways' && (
               <motion.div
                 layoutId="tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6366f1]"
+                className="absolute bottom-0 left-0 right-0 h-px bg-[#111111]"
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               />
             )}
           </button>
           <button
             onClick={() => setActiveTab('research')}
-            className={`flex-1 pb-3 text-sm transition-colors relative ${
-              activeTab === 'research' ? 'text-[#6366f1]' : 'text-[#9999aa]'
+            className={`flex-1 pb-2 text-[10px] font-medium transition-colors relative ${
+              activeTab === 'research' ? 'text-[#111111]' : 'text-[#a3a3a3]'
             }`}
           >
-            Your Research
+            Research
             {activeTab === 'research' && (
               <motion.div
                 layoutId="tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6366f1]"
+                className="absolute bottom-0 left-0 right-0 h-px bg-[#111111]"
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               />
             )}
@@ -105,25 +93,25 @@ export function IntelligencePanel({
         </div>
 
         {/* Tab Content */}
-        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
           {activeTab === 'takeaways' ? (
             <>
               {takeaways.length > 0 ? (
                 takeaways.map((takeaway, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex gap-2 text-sm"
+                    transition={{ delay: i * 0.08 }}
+                    className="flex gap-2 text-[11px]"
                   >
-                    <span className="text-[#6366f1] mt-1.5">•</span>
-                    <span className="text-[#333344] flex-1">{takeaway}</span>
+                    <span className="text-[#a3a3a3] mt-0.5">-</span>
+                    <span className="text-[#525252] flex-1">{takeaway}</span>
                   </motion.div>
                 ))
               ) : (
-                <div className="text-sm text-[#9999aa] text-center py-8">
-                  Start listening to collect key takeaways
+                <div className="text-[11px] text-[#a3a3a3] text-center py-8">
+                  Start listening to collect takeaways
                 </div>
               )}
             </>
@@ -133,23 +121,23 @@ export function IntelligencePanel({
                 researchQueries.map((query) => (
                   <motion.div
                     key={query.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border-b border-[#f1f1f5] pb-3 cursor-pointer"
+                    className="border-b border-[#f0f0f0] pb-2 cursor-pointer"
                     onClick={() => setExpandedQuery(expandedQuery === query.id ? null : query.id)}
                   >
-                    <div className="font-semibold text-xs text-[#111118] mb-1">"{query.query}"</div>
+                    <div className="font-medium text-[10px] text-[#111111] mb-0.5">{`"${query.query}"`}</div>
                     {expandedQuery === query.id ? (
-                      <div className="text-xs text-[#444455] mt-2">{query.summary}</div>
+                      <div className="text-[10px] text-[#525252] mt-1">{query.summary}</div>
                     ) : (
-                      <div className="text-xs text-[#9999aa]">{query.summary.slice(0, 50)}...</div>
+                      <div className="text-[10px] text-[#a3a3a3]">{query.summary.slice(0, 50)}...</div>
                     )}
-                    <div className="text-[10px] text-[#9999aa] mt-1">{query.timestamp}</div>
+                    <div className="text-[9px] text-[#d4d4d4] mt-0.5">{query.timestamp}</div>
                   </motion.div>
                 ))
               ) : (
-                <div className="text-sm text-[#9999aa] text-center py-8">
-                  Select text to trigger deep research
+                <div className="text-[11px] text-[#a3a3a3] text-center py-8">
+                  Select text to trigger research
                 </div>
               )}
             </>
@@ -158,22 +146,20 @@ export function IntelligencePanel({
       </div>
 
       {/* Lecture Summary */}
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs uppercase tracking-wide text-[#9999aa]">Summary So Far</h3>
-        </div>
+      <div className="border border-[#e5e5e5] bg-[#ffffff] p-4">
+        <h3 className="text-[9px] uppercase tracking-widest text-[#a3a3a3] mb-2">Summary</h3>
         <motion.div
           key={summary}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-[#444455] text-sm leading-relaxed mb-4"
+          transition={{ duration: 0.4 }}
+          className="text-[#525252] text-[11px] leading-relaxed mb-3"
         >
           {summary}
         </motion.div>
         <button
           onClick={onCopySummary}
-          className="w-full py-2 border border-[#6366f1] text-[#6366f1] rounded-lg hover:bg-[#eef2ff] transition-colors text-sm"
+          className="w-full py-1.5 border border-[#e5e5e5] text-[#111111] text-[10px] font-medium hover:border-[#111111] transition-colors"
         >
           Copy Summary
         </button>
