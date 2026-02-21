@@ -13,6 +13,37 @@ const getDomain = (url: string): string => {
   }
 };
 
+// Helper to parse basic markdown and render it
+const renderMarkdownContent = (text: string) => {
+  const lines = text.split('\n').filter(line => line.trim());
+  return lines.map((line, idx) => {
+    // Bold headers: **text:** 
+    if (line.includes('**') && line.includes(':')) {
+      const parts = line.split(/\*\*(.*?)\*\*/).filter(p => p);
+      return (
+        <div key={idx} className="mt-2 mb-1">
+          {parts.map((part, i) => 
+            i % 2 === 1 ? (
+              <span key={i} className="font-semibold text-[#111111]">{part}</span>
+            ) : (
+              <span key={i} className="text-[#525252]">{part}</span>
+            )
+          )}
+        </div>
+      );
+    }
+    // Regular lines
+    if (line.trim()) {
+      return (
+        <p key={idx} className="text-xs text-[#525252] leading-relaxed mb-1">
+          {line}
+        </p>
+      );
+    }
+    return null;
+  });
+};
+
 interface Source {
   title: string;
   url: string;
@@ -137,13 +168,9 @@ export function DeepResearchCard({
                 </div>
               ) : (
                 <>
-                  {/* Synthesis/Content Text */}
-                  <div className="space-y-2 pt-1">
-                    {synthesis.split('\n\n').map((para, i) => (
-                      <p key={i} className="text-xs text-[#525252] leading-relaxed">
-                        {para}
-                      </p>
-                    ))}
+                  {/* Synthesis/Content Text with Markdown Formatting */}
+                  <div className="pt-1">
+                    {renderMarkdownContent(synthesis)}
                   </div>
 
                   {/* Sources Section */}

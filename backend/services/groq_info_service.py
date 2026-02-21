@@ -42,18 +42,20 @@ Context: {context}
 Brief definition only - no citations needed."""
 
 
-_DEEP_RESEARCH_PROMPT = """Explain this topic thoroughly for a student:
+_DEEP_RESEARCH_PROMPT = """Explain this topic concisely for a student. Keep it SHORT (max 150 words).
 
 Topic: {term}
 Lecture Context: {context}
 
-Structure your answer:
-• **What it is** - Core definition
-• **Why it matters** - Real-world relevance  
-• **Key examples** - 2-3 concrete cases
-• **How it connects** - Relationship to the lecture topic
+Format your answer as:
 
-Use web search results to provide current information and examples."""
+**What it is:** Define in 1-2 sentences.
+
+**Why it matters:** 1-2 sentences on relevance.
+
+**Example:** One concrete real-world case.
+
+That's it. Be concise."""
 
 
 async def auto_define(term: str, context_tail: str) -> Optional[dict]:
