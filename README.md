@@ -167,7 +167,7 @@ ENABLE_CONVEX=false
 
 | Key | Where to get it |
 |-----|-----------------|
-| SMALLEST_API_KEY | [console.smallest.ai](https://console.smallest.ai) — Use code `SMALLESTVOICEHACK2026` for free credits |
+| SMALLEST_API_KEY | [console.smallest.ai](https://console.smallest.ai) — 
 | GROQ_API_KEY | [console.groq.com](https://console.groq.com) — Free API access with high rate limits |
 
 ### 4. Start the backend
