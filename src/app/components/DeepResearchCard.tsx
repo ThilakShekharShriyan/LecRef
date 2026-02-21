@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ExternalLink, ChevronDown, ChevronUp, Globe, Microscope } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp, Globe, Microscope, Play, Pause } from 'lucide-react';
 import { useState } from 'react';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 interface Source {
   title: string;
@@ -35,9 +36,24 @@ export function DeepResearchCard({
 }: DeepResearchCardProps) {
   const [expanded, setExpanded] = useState(index === 0);
   const opacity = index < 2 ? 1 : 0.7;
+  const { isPlaying, isPaused, isLoading: isAudioLoading, play, pause, resume } = useAudioPlayer(`research-${query}-${index}`);
 
   // Use structured sources if available, otherwise fall back to plain synthesis
   const hasSources = sources && sources.length > 0;
+
+  const handlePlayClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('[DeepResearchCard] handlePlayClick called', { isPlaying, isPaused, isAudioLoading });
+    if (isPlaying) {
+      if (isPaused) {
+        resume();
+      } else {
+        pause();
+      }
+    } else {
+      await play(`${query}. ${synthesis}`);
+    }
+  };
 
   return (
     <motion.div
@@ -69,6 +85,20 @@ export function DeepResearchCard({
             {query}
           </p>
         </div>
+        <button
+          onClick={handlePlayClick}
+          disabled={isAudioLoading}
+          className="p-2 rounded-lg bg-[#f3f0ff] hover:bg-[#e9d5ff] disabled:bg-[#d8d4ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-0.5 flex-shrink-0"
+          title={isAudioLoading ? "Loading..." : isPlaying && !isPaused ? "Pause" : isPlaying && isPaused ? "Resume" : "Play"}
+        >
+          {isAudioLoading ? (
+            <div className="w-4 h-4 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying && !isPaused ? (
+            <Pause className="w-4 h-4 text-[#8b5cf6]" />
+          ) : (
+            <Play className="w-4 h-4 text-[#8b5cf6]" />
+          )}
+        </button>
         <button className="text-[#8b5cf6] mt-1 flex-shrink-0">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>

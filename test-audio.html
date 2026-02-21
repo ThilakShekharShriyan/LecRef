@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #log { border: 1px solid #ccc; padding: 10px; margin: 20px 0; height: 300px; overflow-y: auto; background: #f5f5f5; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Audio Player Test</h1>
+    <button id="playBtn">Play Audio</button>
+    <button id="clearBtn">Clear Log</button>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        const playBtn = document.getElementById('playBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        let audioElement = null;
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.style.marginBottom = '5px';
+            if (type === 'error') line.classList.add('error');
+            if (type === 'success') line.classList.add('success');
+            line.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            log.innerHTML = '';
+            if (audioElement) {
+                audioElement.pause();
+                audioElement = null;
+            }
+        });
+
+        playBtn.addEventListener('click', async () => {
+            addLog('Play button clicked');
+            
+            try {
+                const text = "Hello world. This is a test of the text to speech system";
+                addLog(`Fetching audio for text: "${text.substring(0, 50)}..."`);
+
+                const response = await fetch('http://localhost:8000/api/tts/synthesize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                addLog(`Response status: ${response.status}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    addLog(`Error response: ${errorText.substring(0, 100)}`, 'error');
+                    return;
+                }
+
+                const blob = await response.blob();
+                addLog(`Received blob: ${blob.size} bytes, type: ${blob.type}`, 'success');
+
+                const url = URL.createObjectURL(blob);
+                addLog(`Created object URL: ${url.substring(0, 50)}...`);
+
+                if (audioElement) {
+                    addLog('Stopping previous audio');
+                    audioElement.pause();
+                    URL.revokeObjectURL(audioElement.src);
+                }
+
+                audioElement = new Audio(url);
+                
+                audioElement.addEventListener('play', () => {
+                    addLog('Audio started playing', 'success');
+                });
+
+                audioElement.addEventListener('pause', () => {
+                    addLog('Audio paused');
+                });
+
+                audioElement.addEventListener('ended', () => {
+                    addLog('Audio ended');
+                    URL.revokeObjectURL(url);
+                });
+
+                audioElement.addEventListener('error', (e) => {
+                    addLog(`Audio error: ${e.type}`, 'error');
+                });
+
+                addLog('Calling audio.play()...');
+                const playPromise = audioElement.play();
+                
+                playPromise
+                    .then(() => {
+                        addLog('audio.play() succeeded', 'success');
+                    })
+                    .catch(err => {
+                        addLog(`audio.play() failed: ${err.message}`, 'error');
+                    });
+
+            } catch (error) {
+                addLog(`Error: ${error.message}`, 'error');
+            }
+        });
+
+        addLog('Test page loaded, click "Play Audio" to test');
+    </script>
+</body>
+</html>

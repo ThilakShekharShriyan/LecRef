@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from models.events import CardOut, DeepResearchRequest
 from models.lecture import Card, Lecture
-from services.gemini_info_service import deep_research
+from services.groq_info_service import deep_research
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/research", tags=["research"])

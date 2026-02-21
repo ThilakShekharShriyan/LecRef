@@ -1,6 +1,6 @@
 """
-services/extractor.py — Gemini Flash term extraction and summary generation
-Uses the new google-genai SDK (google.genai).
+services/extractor.py — Groq-powered term extraction and summary generation
+Uses OpenAI SDK with Groq API base URL.
 """
 from __future__ import annotations
 
@@ -9,21 +9,24 @@ import logging
 import re
 from typing import Optional
 
-import google.genai as genai
+from openai import AsyncOpenAI
 
 from config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-_MODEL = "gemini-flash-latest"
-_client: genai.Client | None = None
+_MODEL = "llama-3.1-8b-instant"
+_client: AsyncOpenAI | None = None
 
 
-def _get_client() -> genai.Client:
+def _get_client() -> AsyncOpenAI:
     global _client
     if _client is None:
-        _client = genai.Client(api_key=get_settings().gemini_api_key)
+        _client = AsyncOpenAI(
+            api_key=get_settings().groq_api_key,
+            base_url="https://api.groq.com/openai/v1",
+        )
     return _client
 
 
@@ -52,7 +55,7 @@ Full Transcript:
 
 async def analyze_utterance(utterance: str) -> dict:
     """
-    Single Gemini call that extracts terms, topic, emphasis level, and takeaway.
+    Single Groq call that extracts terms, topic, emphasis level, and takeaway.
     Returns dict with keys: terms, topic, emphasis_level, takeaway.
     Returns empty defaults on failure.
     """
@@ -62,14 +65,26 @@ async def analyze_utterance(utterance: str) -> dict:
 
     prompt = _ANALYZE_PROMPT.format(utterance=utterance[:1500])
     try:
-        response = await _get_client().aio.models.generate_content(
+        response = await _get_client().chat.completions.create(
             model=_MODEL,
-            contents=prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=512,
         )
-        raw = response.text.strip()
+        raw = response.choices[0].message.content.strip()
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
         data = json.loads(raw)
+        
+        # Safely convert emphasis_level with fallback
+        emphasis = data.get("emphasis_level")
+        try:
+            emphasis_level = float(emphasis) if emphasis is not None else 0.5
+        except (ValueError, TypeError):
+            emphasis_level = 0.5
+            
         return {
             "terms": [
                 {"term": str(t.get("term", "")), "type": str(t.get("type", "concept"))}
@@ -77,7 +92,7 @@ async def analyze_utterance(utterance: str) -> dict:
                 if t.get("term")
             ],
             "topic": data.get("topic") or None,
-            "emphasis_level": float(data.get("emphasis_level", 0.5)),
+            "emphasis_level": emphasis_level,
             "takeaway": data.get("takeaway") or None,
             "summary": data.get("summary") or None,
         }
@@ -103,11 +118,15 @@ async def generate_summary(transcript: str) -> Optional[str]:
         return None
     prompt = _SUMMARY_PROMPT.format(transcript=transcript[-4000:])
     try:
-        response = await _get_client().aio.models.generate_content(
+        response = await _get_client().chat.completions.create(
             model=_MODEL,
-            contents=prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=256,
         )
-        return response.text.strip()
+        return response.choices[0].message.content.strip()
     except Exception as exc:
         logger.warning("Summary generation failed: %s", exc)
     return None
@@ -130,11 +149,15 @@ async def detect_takeaway(utterance: str) -> Optional[str]:
         return None
     prompt = _TAKEAWAY_PROMPT.format(utterance=utterance)
     try:
-        response = await _get_client().aio.models.generate_content(
+        response = await _get_client().chat.completions.create(
             model=_MODEL,
-            contents=prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=256,
         )
-        raw = response.text.strip()
+        raw = response.choices[0].message.content.strip()
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
         data = json.loads(raw)
@@ -162,18 +185,29 @@ async def detect_topic(utterance: str) -> Optional[dict]:
         return None
     prompt = _TOPIC_PROMPT.format(utterance=utterance)
     try:
-        response = await _get_client().aio.models.generate_content(
+        response = await _get_client().chat.completions.create(
             model=_MODEL,
-            contents=prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=256,
         )
-        raw = response.text.strip()
+        raw = response.choices[0].message.content.strip()
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
         data = json.loads(raw)
         if isinstance(data, dict) and "topic" in data:
+            # Safely convert emphasis_level with fallback
+            emphasis = data.get("emphasis_level")
+            try:
+                emphasis_level = float(emphasis) if emphasis is not None else 0.5
+            except (ValueError, TypeError):
+                emphasis_level = 0.5
+                
             return {
                 "topic": str(data["topic"]),
-                "emphasis_level": float(data.get("emphasis_level", 0.5)),
+                "emphasis_level": emphasis_level,
             }
     except Exception as exc:
         logger.warning("Topic detection failed: %s", exc)
@@ -193,14 +227,18 @@ Search results:
 
 
 async def synthesize_deep_research(term: str, context: str, snippets: str) -> str:
-    """Synthesize a multi-paragraph deep-research explanation using Gemini Flash."""
+    """Synthesize a multi-paragraph deep-research explanation using Groq."""
     prompt = _SYNTHESIS_PROMPT.format(term=term, context=context, snippets=snippets[:6000])
     try:
-        response = await _get_client().aio.models.generate_content(
+        response = await _get_client().chat.completions.create(
             model=_MODEL,
-            contents=prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1024,
         )
-        return response.text.strip()
+        return response.choices[0].message.content.strip()
     except Exception as exc:
         logger.warning("Deep research synthesis failed: %s", exc)
         return f"Research synthesis unavailable for '{term}'."

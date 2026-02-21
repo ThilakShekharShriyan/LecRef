@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Play, Pause } from 'lucide-react';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 export type DefinitionType = 'concept' | 'person' | 'event';
 
@@ -33,6 +34,20 @@ export function DefinitionCard({ term, type, definition, citations, index, total
   const opacity = index < 3 ? 1 : 0.6;
   const safeType: DefinitionType = typeColors[type] ? type : 'concept';
   const colors = typeColors[safeType];
+  const { isPlaying, isPaused, isLoading, play, pause, resume } = useAudioPlayer(`def-${term}-${index}`);
+
+  const handlePlayClick = async () => {
+    console.log('[DefinitionCard] handlePlayClick called', { isPlaying, isPaused, isLoading });
+    if (isPlaying) {
+      if (isPaused) {
+        resume();
+      } else {
+        pause();
+      }
+    } else {
+      await play(`${term}. ${definition}`);
+    }
+  };
 
   return (
     <motion.div
@@ -50,6 +65,20 @@ export function DefinitionCard({ term, type, definition, citations, index, total
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
         <h3 className="text-[#111118] font-semibold flex-1">{term}</h3>
+        <button
+          onClick={handlePlayClick}
+          disabled={isLoading}
+          className="p-2 rounded-lg bg-[#eef2ff] hover:bg-[#ddd6fe] disabled:bg-[#c8c7ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          title={isLoading ? "Loading..." : isPlaying && !isPaused ? "Pause" : isPlaying && isPaused ? "Resume" : "Play"}
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying && !isPaused ? (
+            <Pause className="w-4 h-4 text-[#6366f1]" />
+          ) : (
+            <Play className="w-4 h-4 text-[#6366f1]" />
+          )}
+        </button>
         <span
           className="px-2.5 py-1 rounded-full text-xs font-medium"
           style={{ backgroundColor: colors.bg, color: colors.text }}

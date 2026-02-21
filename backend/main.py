@@ -9,10 +9,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from db.database import init_db
-from routers import lectures, research, ws
+from routers import lectures, research, tts, ws
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
@@ -48,6 +48,7 @@ async def on_startup() -> None:
 
 app.include_router(lectures.router)
 app.include_router(research.router)
+app.include_router(tts.router)
 app.include_router(ws.router)
 
 

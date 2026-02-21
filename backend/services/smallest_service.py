@@ -120,13 +120,24 @@ class SmallestSession:
         headers = {"Authorization": f"Bearer {settings.smallest_api_key}"}
 
         try:
-            async with websockets.connect(
-                url,
-                extra_headers=headers,
-                ping_interval=20,
-                ping_timeout=20,
-                max_size=None,
-            ) as websocket:
+            try:
+                connect_ctx = websockets.connect(
+                    url,
+                    additional_headers=headers,
+                    ping_interval=20,
+                    ping_timeout=20,
+                    max_size=None,
+                )
+            except TypeError:
+                connect_ctx = websockets.connect(
+                    url,
+                    extra_headers=headers,
+                    ping_interval=20,
+                    ping_timeout=20,
+                    max_size=None,
+                )
+
+            async with connect_ctx as websocket:
                 logger.info("[%s] Smallest.ai connection opened", self.lecture_id)
                 self._ready_event.set()
 

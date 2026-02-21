@@ -41,7 +41,7 @@ from services.extractor import (
     analyze_utterance,
     generate_summary,
 )
-from services.gemini_info_service import auto_define_batch, deep_research
+from services.groq_info_service import auto_define_batch, deep_research
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["websocket"])
