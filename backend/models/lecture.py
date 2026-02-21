@@ -79,6 +79,7 @@ class Card(Base):
     term: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
     citations: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, default=list)
+    sources: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, default=list)
     badge_type: Mapped[str] = mapped_column(
         Enum("concept", "person", "event", "Research", name="badge_type"),
         nullable=False,

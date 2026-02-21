@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 _MODEL = "llama-3.1-8b-instant"
+_SEARCH_MODEL = "groq/compound"  # Model with built-in web search
 _client: AsyncOpenAI | None = None
 
 
@@ -29,20 +30,30 @@ def _get_client() -> AsyncOpenAI:
     return _client
 
 
-_DEFINITION_PROMPT = """You are a lecture assistant. Define the term below in 1-3 clear sentences.
-Use the lecture context only to disambiguate meaning. Avoid citations.
+# ============================================================================
+# CONDENSED PROMPTS - Readable in < 1 minute
+# ============================================================================
+
+_DEFINITION_PROMPT = """Define this term in 1-3 sentences using the lecture context.
 
 Term: {term}
 Context: {context}
-"""
+
+Brief definition only - no citations needed."""
 
 
-_DEEP_RESEARCH_PROMPT = """You are a research assistant. Write a thorough, multi-paragraph explanation
-of the topic below for a student. Use the lecture context only to disambiguate. Avoid citations.
+_DEEP_RESEARCH_PROMPT = """Explain this topic thoroughly for a student:
 
 Topic: {term}
-Context: {context}
-"""
+Lecture Context: {context}
+
+Structure your answer:
+• **What it is** - Core definition
+• **Why it matters** - Real-world relevance  
+• **Key examples** - 2-3 concrete cases
+• **How it connects** - Relationship to the lecture topic
+
+Use web search results to provide current information and examples."""
 
 
 async def auto_define(term: str, context_tail: str) -> Optional[dict]:
@@ -99,35 +110,78 @@ async def auto_define_batch(
 
 
 async def deep_research(term: str, context: str) -> Optional[dict]:
-    """Return a Groq-generated deep research card or None on failure."""
-    logger.info(f"[Groq] deep_research called for term: '{term}'")
+    """Deep research with web search using groq/compound model.
+    
+    Returns dict with:
+    - term: research topic
+    - content: synthesized answer
+    - citations: list of {title, url} formatted for display
+    - sources: raw search results with relevance scores
+    - badge_type: "research"
+    """
+    logger.info(f"[Groq] 🔍 deep_research starting for: '{term}'")
     if not term.strip():
         logger.warning("[Groq] Empty term provided to deep_research")
         return None
 
     prompt = _DEEP_RESEARCH_PROMPT.format(term=term, context=context[:400])
     try:
-        logger.debug(f"[Groq] Sending deep research request to Groq for term: '{term}'")
+        logger.debug(f"[Groq] Requesting groq/compound (web search) for: '{term}'")
+        
+        # Use groq/compound with built-in web search
         response = await _get_client().chat.completions.create(
-            model=_MODEL,
+            model=_SEARCH_MODEL,  # groq/compound with Tavily web search
             messages=[
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
             max_tokens=1024,
+            search_settings={
+                "exclude_domains": ["twitter.com", "x.com", "instagram.com"]  # Skip social media
+            }
         )
+        
         content = response.choices[0].message.content.strip()
         if not content:
-            logger.warning(f"[Groq] Empty response from Groq for deep research: '{term}'")
+            logger.warning(f"[Groq] Empty response from groq/compound for: '{term}'")
             return None
-        logger.info(f"[Groq] Successfully generated deep research for term: '{term}' ({len(content)} chars)")
+
+        # Extract sources from web search
+        sources = []
+        citations = []
+        
+        if hasattr(response.choices[0].message, 'executed_tools') and response.choices[0].message.executed_tools:
+            logger.debug(f"[Groq] Found {len(response.choices[0].message.executed_tools)} executed tools")
+            for tool in response.choices[0].message.executed_tools:
+                if hasattr(tool, 'search_results') and tool.search_results:
+                    logger.info(f"[Groq] Extracted {len(tool.search_results)} search results")
+                    for result in tool.search_results:
+                        source = {
+                            "url": result.get("url", ""),
+                            "title": result.get("title", ""),
+                            "snippet": result.get("content", ""),
+                            "relevance": float(result.get("score", 0.0))
+                        }
+                        sources.append(source)
+                        
+                        # Format for citations display
+                        if result.get("title") and result.get("url"):
+                            citations.append({
+                                "title": result.get("title"),
+                                "url": result.get("url"),
+                                "domain": result.get("url", "").split("/")[2] if result.get("url") else ""
+                            })
+        
+        logger.info(f"[Groq] ✅ deep_research complete for '{term}': {len(content)} chars, {len(sources)} sources")
+        
         return {
             "term": term,
             "content": content,
-            "citations": [],
-            "sources": [],
-            "badge_type": "concept",
+            "citations": citations[:5],  # Top 5 citations
+            "sources": sources[:5],      # Top 5 sources with scores
+            "badge_type": "research",
         }
+        
     except Exception as exc:
-        logger.error(f"[Groq] Deep research failed for '{term}': {type(exc).__name__}: {str(exc)}", exc_info=True)
+        logger.error(f"[Groq] ❌ deep_research failed for '{term}': {type(exc).__name__}: {str(exc)}", exc_info=True)
         return None

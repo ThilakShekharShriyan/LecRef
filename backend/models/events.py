@@ -20,6 +20,17 @@ class Citation(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Source (for web search results)
+# ---------------------------------------------------------------------------
+
+class Source(BaseModel):
+    url: str
+    title: str
+    snippet: str
+    relevance: float = 0.0
+
+
+# ---------------------------------------------------------------------------
 # Card schemas
 # ---------------------------------------------------------------------------
 
@@ -30,6 +41,7 @@ class CardOut(BaseModel):
     term: str
     content: str
     citations: list[Citation] = []
+    sources: list[Source] = []
     badge_type: str
     lecture_timestamp_seconds: int
     created_at: datetime

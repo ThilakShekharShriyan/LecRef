@@ -65,6 +65,7 @@ async def _save_card(
     citations: list,
     badge_type: str,
     timestamp_seconds: int,
+    sources: list = None,
 ) -> dict:
     async with AsyncSessionLocal() as db:
         card = Card(
@@ -74,6 +75,7 @@ async def _save_card(
             term=term,
             content=content,
             citations=citations,
+            sources=sources or [],
             badge_type=badge_type,
             lecture_timestamp_seconds=timestamp_seconds,
             created_at=_now(),
@@ -88,6 +90,7 @@ async def _save_card(
             "term": card.term,
             "content": card.content,
             "citations": card.citations or [],
+            "sources": card.sources or [],
             "badge_type": card.badge_type,
             "lecture_timestamp_seconds": card.lecture_timestamp_seconds,
             "created_at": card.created_at.isoformat(),
@@ -225,9 +228,14 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
             
             try:
                 # 1. Single Gemini Call
+                logger.info("[%s] 🔄 Pipeline triggered, analyzing utterance...", lecture_id)
                 analysis = await analyze_utterance(utterance)
                 if not analysis:
+                    logger.warning("[%s] ⚠️ analyze_utterance returned None/empty", lecture_id)
                     return False
+
+                logger.info("[%s] ✅ Analysis complete: %d terms, topic=%s", 
+                           lecture_id, len(analysis.get("terms", [])), analysis.get("topic"))
 
                 ts = stt_session.elapsed_seconds()
                 context_tail = stt_session.get_context_tail(500)
@@ -255,13 +263,17 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                 # 5. Process Terms (Cards)
                 terms = analysis["terms"]
                 if terms:
+                    logger.info("[%s] 📚 Found %d terms: %s", lecture_id, len(terms), 
+                               [t["term"] for t in terms])
                     # Filter for new terms only
                     new_term_strs = term_cache.filter_new([t["term"] for t in terms])
                     new_term_dicts = [t for t in terms if t["term"] in new_term_strs]
 
                     if new_term_dicts:
+                        logger.info("[%s] 🆕 %d new terms to define", lecture_id, len(new_term_dicts))
                         # Auto-define these new terms
                         results = await auto_define_batch(new_term_dicts, context_tail)
+                        logger.info("[%s] ✅ Got %d definitions back", lecture_id, len(results))
                         for res in results:
                             term_cache.put(res["term"], res)
                             card_dict = await _save_card(
@@ -273,7 +285,12 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                                 badge_type=res.get("badge_type", "concept"),
                                 timestamp_seconds=ts,
                             )
+                            logger.info("[%s] 📤 Sending card: %s", lecture_id, res["term"])
                             await send_json({"type": "new_card", "card": card_dict})
+                    else:
+                        logger.debug("[%s] No new terms to define", lecture_id)
+                else:
+                    logger.debug("[%s] No terms extracted", lecture_id)
 
                 # 5. Deep Research (throttled, using extracted topic/term)
                 now = time.time()
@@ -312,15 +329,17 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                                 term=res["term"],
                                 content=res["content"],
                                 citations=res.get("citations", []),
-                                badge_type="concept",
+                                sources=res.get("sources", []),
+                                badge_type="research",
                                 timestamp_seconds=ts,
                             )
+                            logger.info("[%s] 📤 Sending deep_research_result for: %s", lecture_id, res["term"])
                             await send_json({"type": "deep_research_result", "card": dr_card})
 
                 return True
 
             except Exception as exc:
-                logger.warning("[%s] Pipeline error: %s", lecture_id, exc)
+                logger.error("[%s] ❌ Pipeline error: %s", lecture_id, str(exc), exc_info=True)
                 return False
 
         while session_active:
@@ -330,6 +349,8 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                 )
                 if utterance.strip():
                     utterance_buffer.append(utterance)
+                    logger.info("[%s] 🎤 Utterance received: %d chars from %s", 
+                               lecture_id, len(utterance), speaker)
 
             except asyncio.TimeoutError:
                 pass
@@ -352,6 +373,8 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
             should_retry = retry_pending and now >= retry_after
 
             if should_process or should_retry:
+                logger.info("[%s] 🎯 Pipeline trigger: buffer=%d, should_process=%s, should_retry=%s",
+                           lecture_id, len(utterance_buffer), should_process, should_retry)
                 # Always combine buffered utterances with the latest context
                 combined = " ".join(utterance_buffer) if utterance_buffer else stt_session.get_context_tail(300)
                 utterance_buffer.clear()
@@ -365,6 +388,11 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                     logger.info("[%s] Gemini failed — will retry in 20s", lecture_id)
                 else:
                     retry_pending = False
+            else:
+                if len(utterance_buffer) > 0:
+                    logger.debug("[%s] ⏳ Waiting: buffer=%d, time_since_last=%.1fs (need %d), time_since_pipeline=%.1fs (need %d)",
+                               lecture_id, len(utterance_buffer), time_since_last, MIN_PIPELINE_INTERVAL,
+                               time_since_pipeline, MIN_PIPELINE_INTERVAL)
 
 
 
@@ -387,12 +415,14 @@ async def websocket_endpoint(websocket: WebSocket, lecture_id: str):
                     term=result["term"],
                     content=result["content"],
                     citations=result.get("citations", []),
-                    badge_type=result.get("badge_type", "concept"),
+                    sources=result.get("sources", []),
+                    badge_type=result.get("badge_type", "research"),
                     timestamp_seconds=stt_session.elapsed_seconds(),
                 )
+                logger.info("[%s] 📤 Sending user deep_research_result for: %s", lecture_id, result["term"])
                 await send_json({"type": "deep_research_result", "card": card_dict})
         except Exception as exc:
-            logger.error("[%s] Deep research error: %s", lecture_id, exc)
+            logger.error("[%s] ❌ Deep research error: %s", lecture_id, str(exc), exc_info=True)
 
     # ------------------------------------------------------------------
     # Background task: periodic transcript save (every 3s)
